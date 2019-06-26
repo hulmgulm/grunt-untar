@@ -1,12 +1,12 @@
 'use strict';
 
 var tar = require('tar'),
-    zlib = require('zlib'),
-    fs = require('fs'),
-    path = require('path'),
-    async = require('async');
+  zlib = require('zlib'),
+  fs = require('fs'),
+  path = require('path'),
+  async = require('async');
 
-function contains(array, value){
+function contains(array, value) {
   return array.indexOf(value) > -1;
 }
 
@@ -18,8 +18,8 @@ function contains(array, value){
  * @param [mode] the mode
  * @returns {Boolean} true if the file must be unzipped
  */
-function mustUnzip(file, mode){
-  if (mode){
+function mustUnzip(file, mode) {
+  if (mode) {
     return mode === 'tgz';
   }
   var extension = path.extname(file);
@@ -32,7 +32,7 @@ function mustUnzip(file, mode){
  * @param mode
  * @returns {boolean}
  */
-function isValidMode(mode){
+function isValidMode(mode) {
   return mode == null || contains(['tgz', 'tar'], mode);
 }
 
@@ -41,22 +41,22 @@ function isValidMode(mode){
  *
  * @param grunt
  */
-module.exports = function(grunt){
-  grunt.registerMultiTask('untar', 'Extract tar files', function() {
+module.exports = function (grunt) {
+  grunt.registerMultiTask('untar', 'Extract tar files', function () {
 
     // Merge task-specific and/or target-specific options with these defaults.
     var options = this.options({
-      mode : null
+      mode: null
     });
 
-    if (!isValidMode(options.mode)){
+    if (!isValidMode(options.mode)) {
       grunt.fail.fatal('Invalid mode ' + options.mode);
     }
 
     var done = this.async();
 
-    async.eachSeries(this.files, function(f, next) {
-      var src = f.src.filter(function(filepath) {
+    async.eachSeries(this.files, function (f, next) {
+      var src = f.src.filter(function (filepath) {
         // Warn on and remove invalid source files (if nonull was set).
         if (!grunt.file.exists(filepath)) {
           grunt.log.warn('Source file "' + filepath + '" not found.');
@@ -65,19 +65,25 @@ module.exports = function(grunt){
         return true;
       });
 
-      async.eachSeries(src, function(file, cb){
+      async.eachSeries(src, function (file, cb) {
         grunt.log.writeln('Untarring ' + file + ' to ' + f.dest);
 
         var stream = fs.createReadStream(file);
-        if (mustUnzip(file, options.mode)){
+        if (mustUnzip(file, options.mode)) {
           // stream through a zip extractor
           stream = stream.pipe(zlib.createGunzip());
-          stream.on('error', cb);
+          stream.on('error', (err) => {
+            grunt.log.err('Error creating pipe: ' + err);
+            cb();
+          });
         }
 
         // stream to file through a TAR extractor
-        stream.pipe(tar.extract({path: f.dest}))
-          .on('error', cb)
+        stream.pipe(tar.extract({ cwd: f.dest }))
+          .on('error', (err) => {
+            grunt.log.err('Error untarring file: ' + err);
+            cb();
+          })
           .on('end', cb);
       }, next);
     }, done);
