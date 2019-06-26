@@ -76,7 +76,7 @@ module.exports = function(grunt){
         }
 
         // stream to file through a TAR extractor
-        stream.pipe(tar.Extract({path: f.dest}))
+        stream.pipe(tar.extract({path: f.dest}))
           .on('error', cb)
           .on('end', cb);
       }, next);
