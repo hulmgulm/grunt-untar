@@ -1,7 +1,7 @@
 {
   "name": "grunt-untar",
   "description": "A grunt task to decompress/extract tar files",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "homepage": "https://github.com/arhs/grunt-untar",
   "author": {
     "name": "Laurent VB"
@@ -33,14 +33,14 @@
     "concat-stream": "^1.4.6"
   },
   "peerDependencies": {
-    "grunt": "~0.4.0"
+    "grunt": "=>0.4.0"
   },
   "keywords": [
     "gruntplugin", "grunt",
     "tar", "targz", "tgz", "tarball", "decompress"
   ],
   "dependencies": {
-    "async": "^0.9.0",
-    "tar": "^0.1.19"
+    "async": "3.1.0",
+    "tar": "4.4.0"
   }
 }
