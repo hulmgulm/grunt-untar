@@ -1,8 +1,8 @@
 'use strict';
 
-var tar = require('tar'),
+const tar = require('tar'),
   zlib = require('zlib'),
-  fs = require('fs'),
+  fs = require('fs-extra'),
   path = require('path'),
   async = require('async');
 
@@ -22,7 +22,7 @@ function mustUnzip(file, mode) {
   if (mode) {
     return mode === 'tgz';
   }
-  var extension = path.extname(file);
+  const extension = path.extname(file);
   return contains(['.tgz', '.gz'], extension);
 }
 
@@ -33,7 +33,7 @@ function mustUnzip(file, mode) {
  * @returns {boolean}
  */
 function isValidMode(mode) {
-  return mode == null || contains(['tgz', 'tar'], mode);
+  return mode === null || contains(['tgz', 'tar'], mode);
 }
 
 /**
@@ -41,50 +41,56 @@ function isValidMode(mode) {
  *
  * @param grunt
  */
-module.exports = function (grunt) {
-  grunt.registerMultiTask('untar', 'Extract tar files', function () {
-
+module.exports = function(grunt) {
+  grunt.registerMultiTask('untar', 'Extract tar files', function() {
     // Merge task-specific and/or target-specific options with these defaults.
-    var options = this.options({
+    const options = this.options({
       mode: null
     });
 
     if (!isValidMode(options.mode)) {
-      grunt.fail.fatal('Invalid mode ' + options.mode);
+      grunt.fail.fatal(`Invalid mode ${options.mode}`);
     }
 
-    var done = this.async();
+    const done = this.async();
 
-    async.eachSeries(this.files, function (f, next) {
-      var src = f.src.filter(function (filepath) {
+    async.eachSeries(this.files, (f, next) => {
+      const src = f.src.filter(filepath => {
         // Warn on and remove invalid source files (if nonull was set).
         if (!grunt.file.exists(filepath)) {
-          grunt.log.warn('Source file "' + filepath + '" not found.');
+          grunt.log.warn(`Source file "${filepath}" not found.`);
           return false;
         }
         return true;
       });
 
-      async.eachSeries(src, function (file, cb) {
-        grunt.log.writeln('Untarring ' + file + ' to ' + f.dest);
+      async.eachSeries(src, (file, cb) => {
+        grunt.log.writeln(`Untarring ${file} to ${f.dest}`);
 
-        var stream = fs.createReadStream(file);
-        if (mustUnzip(file, options.mode)) {
-          // stream through a zip extractor
-          stream = stream.pipe(zlib.createGunzip());
-          stream.on('error', (err) => {
-            grunt.log.err('Error creating pipe: ' + err);
-            cb();
-          });
-        }
+        fs.ensureDir(f.dest, err => {
+          if (err) {
+            grunt.log.error(`Error creating target directory: ${err}`);
+            return cb();
+          }
 
-        // stream to file through a TAR extractor
-        stream.pipe(tar.extract({ cwd: f.dest }))
-          .on('error', (err) => {
-            grunt.log.err('Error untarring file: ' + err);
-            cb();
-          })
-          .on('end', cb);
+          let stream = fs.createReadStream(file);
+          if (mustUnzip(file, options.mode)) {
+            // stream through a zip extractor
+            stream = stream.pipe(zlib.createGunzip());
+            stream.on('error', err => {
+              grunt.log.error(`Error creating pipe: ${err}`);
+              cb();
+            });
+          }
+
+          // stream to file through a TAR extractor
+          stream.pipe(tar.extract({ cwd: f.dest }))
+            .on('error', err => {
+              grunt.log.error(`Error untarring file: ${err}`);
+              cb();
+            })
+            .on('end', cb);
+        });
       }, next);
     }, done);
   });

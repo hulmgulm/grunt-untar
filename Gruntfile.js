@@ -9,7 +9,6 @@
 'use strict';
 
 module.exports = function(grunt) {
-
   // Project configuration.
   grunt.initConfig({
     jshint: {
@@ -32,7 +31,7 @@ module.exports = function(grunt) {
     untar: {
       tgztest: {
         files: {
-         'tmp/tgztest': 'test/fixtures/fixtures.tgz'
+          'tmp/tgztest': 'test/fixtures/fixtures.tgz'
         }
       },
       tartest: {
@@ -71,5 +70,4 @@ module.exports = function(grunt) {
 
   // By default, lint and run all tests.
   grunt.registerTask('default', ['jshint', 'test']);
-
 };
