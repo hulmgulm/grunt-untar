@@ -1,7 +1,7 @@
 {
   "name": "grunt-untar-new",
   "description": "A grunt task to decompress/extract tar files",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "homepage": "https://github.com/hulmgulm/grunt-untar",
   "author": {
     "name": "Laurent VB & Andreas Weber"
@@ -45,8 +45,8 @@
     "decompress"
   ],
   "dependencies": {
-    "async": "3.1.0",
-    "tar": "4.4.10",
-    "fs-extra": "8.1.0"
+    "async": "3.2.1",
+    "tar": "6.1.8",
+    "fs-extra": "10.0.0"
   }
 }
